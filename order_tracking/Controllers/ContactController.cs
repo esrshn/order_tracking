@@ -1,42 +1,50 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using order_tracking.Models;
 
 namespace order_tracking.Controllers
 {
-    public class ContactController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ContactController : ControllerBase
     {
-        // Dependency Injection ile DbContext aldık
         private readonly ApplicationDbContext _dbContext;
 
-        // Constructor: Bağımlılık enjeksiyonu
         public ContactController(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        // Index Action - Kişileri listele
-        public IActionResult Index()
-        {
-            var contacts = _dbContext.Contacts.ToList();  // Contact modeline göre liste alıyoruz
-            return View(contacts); // View'e gönderiyoruz
-        }
-
-        // Create Action - Yeni Contact eklemek için
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // Create POST Action - Kişi eklemek için
         [HttpPost]
-        public IActionResult Create(Contact contact)
+        public async Task<IActionResult> CreateContact([FromBody] ContactCreateRequest model)
         {
-            if (ModelState.IsValid)
+            if (model == null)
             {
-                _dbContext.Contacts.Add(contact);
-                _dbContext.SaveChanges();
-                return RedirectToAction("Index");  // Başarıyla ekledikten sonra Index'e yönlendir
+                return BadRequest("Gönderilen veri geçerli değil.");
             }
-            return View(contact);
+
+            var contact = new Contact
+            {
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+             
+                TCKN = model.TCKN,
+                Gender = model.Gender
+            };
+
+            _dbContext.Contacts.Add(contact);
+            await _dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetContact), new { id = contact.ContactId }, contact);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetContact(int id)
+        {
+            var contact = await _dbContext.Contacts.FindAsync(id);
+            if (contact == null)
+                return NotFound();
+
+            return Ok(contact);
         }
     }
 }

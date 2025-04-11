@@ -1,28 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using order_tracking; // Bu senin DbContext ve model sınıflarının namespace'i
+using order_tracking; 
 
 var builder = WebApplication.CreateBuilder(args);
+
 IConfiguration configuration = builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true).Build();
 
-// ✅ Buraya DbContext servisini ekliyoruz:
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Diğer servisler<
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Migration'ları uygulama
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        context.Database.Migrate(); // Migration'ları uygula
+        context.Database.Migrate(); 
     }
     catch (Exception ex)
     {
@@ -31,7 +29,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Middlewares
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -41,6 +38,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers(); 
 
 app.Run();
