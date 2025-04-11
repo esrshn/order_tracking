@@ -1,0 +1,6 @@
+@order_tracking_HostAddress = http://localhost:5285
+
+GET {{order_tracking_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
